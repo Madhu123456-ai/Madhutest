@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <circle cx="60" cy="60" r="58" fill="#1a5c2e"/>
+  <text x="60" y="58" text-anchor="middle" fill="#4ade80" font-family="Arial,sans-serif" font-size="28" font-weight="bold">GF</text>
+  <path d="M35 78 Q60 68 85 78" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <ellipse cx="60" cy="95" rx="28" ry="6" fill="#0d3d1f" opacity="0.3"/>
+</svg>

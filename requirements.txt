@@ -1,0 +1,6 @@
+Flask==2.0.3
+Flask-Login==0.5.0
+Werkzeug==2.0.3
+fpdf==1.7.2
+razorpay==1.4.1
+python-dotenv==0.20.0

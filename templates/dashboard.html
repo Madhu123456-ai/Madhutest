@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quotation Builder — GreenFormula</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="" />
+        <span>{{ company.name }}</span>
+      </div>
+      <nav>
+        <a href="#" class="nav-item active">Dashboard</a>
+        <a href="#" class="nav-item">Products (Trees)</a>
+        <a href="#" class="nav-item">Customers</a>
+        <a href="#" class="nav-item active">Quotation Builder</a>
+        <a href="#" class="nav-item">Quotations</a>
+        <a href="#" class="nav-item">Invoices</a>
+        <a href="#" class="nav-item">Payments</a>
+        <a href="#" class="nav-item">Reports</a>
+        <a href="#" class="nav-item">Stock Management</a>
+        <a href="{{ url_for('auth.logout') }}" class="nav-item logout">Logout</a>
+      </nav>
+      <div class="sidebar-promo">
+        <p>GreenFormula</p>
+        <small>Grow Green, Live Green — nursery management</small>
+      </div>
+    </aside>
+
+    <div class="main-wrap">
+      <header class="topbar">
+        <button type="button" class="icon-btn" id="menuToggle" aria-label="Menu">☰</button>
+        <div class="search-global">
+          <input type="search" placeholder="Search trees, plants, etc..." disabled />
+        </div>
+        <div class="topbar-right">
+          <span class="badge">5</span>
+          <div class="user-pill">
+            <span class="avatar">A</span>
+            <div>
+              <strong>Admin User</strong>
+              <small>Administrator</small>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content">
+        <section class="stats-grid">
+          <div class="stat-card">
+            <span class="stat-label">Total Sales (This Month)</span>
+            <span class="stat-value">₹{{ "{:,.0f}".format(stats.total_sales) }}</span>
+            <span class="stat-meta positive">+12.5% from last month</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Quotations</span>
+            <span class="stat-value">{{ stats.total_quotations }}</span>
+            <span class="stat-meta">All time</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Customers</span>
+            <span class="stat-value">{{ stats.total_customers }}</span>
+            <span class="stat-meta">Unique names</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-label">Total Products</span>
+            <span class="stat-value">{{ stats.total_products }}</span>
+            <span class="stat-meta">In Stock</span>
+          </div>
+        </section>
+
+        <section class="panel company-panel">
+          <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="GreenFormula Logo" />
+          <div>
+            <h3>{{ company.name }}</h3>
+            <p>{{ company.address }}</p>
+            <p>Phone: {{ company.phone }} | Email: {{ company.email }}</p>
+          </div>
+        </section>
+
+        <section class="builder-grid">
+          <div class="panel product-panel">
+            <h2>Quotation Builder</h2>
+            <label class="field-label">Search trees from directory</label>
+            <div class="search-wrap">
+              <input type="text" id="treeSearch" placeholder="Type tree name e.g. mango, neem..." autocomplete="off" />
+              <ul id="searchResults" class="search-dropdown hidden"></ul>
+            </div>
+            <p class="section-title">Quick Add</p>
+            <div class="product-grid" id="featuredGrid">
+              {% for tree in featured %}
+              <article class="product-card" data-id="{{ tree.id }}">
+                <div class="product-thumb">🌳</div>
+                <h3>{{ tree.name }}</h3>
+                <p class="sci">{{ tree.scientific }}</p>
+                <p class="price">₹{{ tree.price|int }}</p>
+                <button type="button" class="btn btn-sm btn-add" data-id="{{ tree.id }}">Add</button>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="panel cart-panel">
+            <h2>Cart / Items</h2>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>S.No</th>
+                    <th>Particular</th>
+                    <th>Quantity</th>
+                    <th>Height</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                    <th>Spacing</th>
+                    <th>Remarks</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="cartBody">
+                  <tr class="empty-row"><td colspan="9">Add trees from search or quick add</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="charges-grid">
+              <div>
+                <label>Labour Charge</label>
+                <input type="number" id="labourCharge" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label>Transport Charge</label>
+                <input type="number" id="transportCharge" min="0" step="0.01" value="0" />
+              </div>
+              <div>
+                <label>Discount</label>
+                <input type="number" id="discountAmount" min="0" step="0.01" value="0" />
+              </div>
+            </div>
+            <div class="totals">
+              <div><span>Subtotal</span><strong id="subtotal">₹0.00</strong></div>
+              <div><span>GST ({{ company.gst_rate }}%)</span><strong id="gst">₹0.00</strong></div>
+              <div><span>Labour</span><strong id="labour">₹0.00</strong></div>
+              <div><span>Transport</span><strong id="transport">₹0.00</strong></div>
+              <div><span>Discount</span><strong id="discount">₹0.00</strong></div>
+              <div class="total-row"><span>Total</span><strong id="total">₹0.00</strong></div>
+            </div>
+            <div class="cart-actions">
+              <button type="button" class="btn btn-outline" id="clearCart">Clear Cart</button>
+              <button type="button" class="btn btn-primary" id="continueBtn">Continue →</button>
+            </div>
+          </div>
+
+          <div class="panel customer-panel">
+            <h2>Customer Details</h2>
+            <label>Name *</label>
+            <input type="text" id="custName" placeholder="Customer name" />
+            <label>Phone</label>
+            <input type="tel" id="custPhone" placeholder="+91 ..." />
+            <label>Email</label>
+            <input type="email" id="custEmail" placeholder="email@example.com" />
+            <label>Address</label>
+            <textarea id="custAddress" rows="3" placeholder="Delivery address"></textarea>
+            <button type="button" class="btn btn-primary btn-block" id="saveCustomer">Save Customer</button>
+
+            <h3 class="mt">Quick Actions</h3>
+            <button type="button" class="btn qa qa-green" id="genPdf">Generate Quotation (PDF)</button>
+            <button type="button" class="btn qa qa-blue" id="payBtn">Proceed to Payment</button>
+            <button type="button" class="btn qa qa-purple" id="saveDraft">Save as Draft</button>
+            <button type="button" class="btn qa qa-red" id="clearAll">Clear All</button>
+          </div>
+        </section>
+
+        <section class="panel recent-panel">
+          <h2>Recent Quotations</h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Quotation No.</th>
+                  <th>Customer</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="quotationsBody">
+                {% for q in quotations %}
+                <tr data-no="{{ q.quotation_no }}">
+                  <td>{{ q.quotation_no }}</td>
+                  <td>{{ q.customer_name }}</td>
+                  <td>₹{{ "%.2f"|format(q.total) }}</td>
+                  <td><span class="status status-{{ q.status|lower }}">{{ q.status }}</span></td>
+                  <td>{{ q.created_at[:10] if q.created_at else '' }}</td>
+                  <td class="actions">
+                    {% if q.pdf_path %}
+                    <a href="{{ url_for('main.download_pdf', quotation_no=q.quotation_no) }}" title="PDF">⬇</a>
+                    {% endif %}
+                    <button type="button" class="link-btn delete-q" data-no="{{ q.quotation_no }}">🗑</button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-box">
+      <h3>Generate Quotation?</h3>
+      <p id="confirmMessage">You have items in cart. Generate PDF with company logo, address, and customer details?</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" id="confirmCancel">Cancel</button>
+        <button type="button" class="btn btn-primary" id="confirmOk">Generate PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    window.APP_CONFIG = {
+      gstRate: {{ company.gst_rate }},
+      minItems: 2,
+      quoteNote: {{ company.quote_note|tojson }},
+      razorpayEnabled: {{ 'true' if razorpay_enabled else 'false' }},
+      razorpayKey: "{{ razorpay_key }}"
+    };
+  </script>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
